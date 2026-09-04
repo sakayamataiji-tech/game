@@ -5,7 +5,7 @@
 
 - Web 先行（ブラウザで即プレイ、審査不要）。GitHub Pages で公開。
 - Phaser 3 + Vite。サーバー不要。日替わり問題は日付をシードにした乱数で全端末同じ問題になる。
-- ジャンル選定の根拠は [docs/market-research.md](docs/market-research.md)。
+- ジャンル選定の根拠は [docs/market-research.md](docs/market-research.md)、収益化の手順は [docs/monetization-roadmap.md](docs/monetization-roadmap.md)。
 
 ## 遊び方
 
