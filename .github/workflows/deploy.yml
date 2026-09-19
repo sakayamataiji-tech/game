@@ -23,9 +23,24 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            nlh-dealer-trainer/package-lock.json
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Build NLH Dealer Trainer (static export)
+        working-directory: nlh-dealer-trainer
+        env:
+          NEXT_PUBLIC_BASE_PATH: /game/nlh-dealer-trainer
+        run: |
+          npm ci
+          npm test
+          npm run build
+      - name: Bundle trainer under /game/nlh-dealer-trainer/
+        run: |
+          mkdir -p dist/nlh-dealer-trainer
+          cp -r nlh-dealer-trainer/out/. dist/nlh-dealer-trainer/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

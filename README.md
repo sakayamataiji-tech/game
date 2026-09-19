@@ -7,6 +7,9 @@
 - Phaser 3 + Vite。サーバー不要。日替わり問題は日付をシードにした乱数で全端末同じ問題になる。
 - ジャンル選定の根拠は [docs/market-research.md](docs/market-research.md)、収益化の手順は [docs/monetization-roadmap.md](docs/monetization-roadmap.md)。
 
+> **NLH Dealer Trainer**（ポーカーディーラー訓練アプリ）は [`nlh-dealer-trainer/`](nlh-dealer-trainer/README.md) にある独立した Next.js（static export）アプリです。
+> Pages では `https://<ユーザー名>.github.io/game/nlh-dealer-trainer/` に同時公開されます。
+
 ## 遊び方
 
 1. 下のトレイにあるピースを盤面にドラッグ。

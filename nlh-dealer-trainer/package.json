@@ -1,0 +1,26 @@
+{
+  "name": "nlh-dealer-trainer",
+  "private": true,
+  "version": "0.1.0",
+  "description": "No-Limit Hold'em dealer trainer: hand reading, winner, pot and side pot drills. All answers are derived from the poker rules engine.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "npx serve out",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "5.9.3",
+    "vitest": "5.0.1"
+  }
+}
