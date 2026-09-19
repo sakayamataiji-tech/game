@@ -43,6 +43,8 @@ export interface HandHistory {
   buttonSeat: number;
   smallBlind: number;
   bigBlind: number;
+  /** Per-player ante posted by everyone before the blinds (0 / undefined = no ante). */
+  ante?: number;
   streets: StreetActions[];
 }
 
@@ -61,7 +63,7 @@ export interface PlayerState {
 export interface LogEntry {
   street: Street;
   seat: number;
-  type: ActionType | "post_sb" | "post_bb";
+  type: ActionType | "post_ante" | "post_sb" | "post_bb";
   /** Chips actually moved by this action. */
   chips: number;
   /** For bets/raises/all-ins: total on this street after the action ("raise to"). */
@@ -77,6 +79,7 @@ export interface HandState {
   buttonSeat: number;
   smallBlind: number;
   bigBlind: number;
+  ante: number;
   street: Street;
   currentBet: number;
   lastRaiseSize: number;
@@ -143,7 +146,7 @@ function refreshHandOver(state: HandState): void {
 }
 
 /** Create the hand state and post the blinds. */
-export function startHand(history: Pick<HandHistory, "players" | "buttonSeat" | "smallBlind" | "bigBlind">): HandState {
+export function startHand(history: Pick<HandHistory, "players" | "buttonSeat" | "smallBlind" | "bigBlind" | "ante">): HandState {
   if (history.players.length < 2) throw new BettingError("need at least 2 players");
   const seats = new Set<number>();
   for (const p of history.players) {
@@ -169,6 +172,7 @@ export function startHand(history: Pick<HandHistory, "players" | "buttonSeat" | 
     buttonSeat: history.buttonSeat,
     smallBlind: history.smallBlind,
     bigBlind: history.bigBlind,
+    ante: history.ante ?? 0,
     street: "preflop",
     currentBet: 0,
     lastRaiseSize: history.bigBlind,
@@ -179,6 +183,15 @@ export function startHand(history: Pick<HandHistory, "players" | "buttonSeat" | 
   };
   if (!players.some((p) => p.seat === history.buttonSeat)) throw new BettingError("button seat not at table");
 
+  if (state.ante < 0) throw new BettingError("negative ante");
+  if (state.ante > 0) {
+    // Antes go straight to the pot; they are not part of the street bet.
+    for (const p of players) {
+      const chips = contribute(p, state.ante);
+      state.log.push({ street: "preflop", seat: p.seat, type: "post_ante", chips, toAmount: 0, potAfter: totalPot(state) });
+      p.streetContribution = 0;
+    }
+  }
   const sbSeat = smallBlindSeat(state);
   const bbSeat = bigBlindSeat(state);
   const sb = findPlayer(state, sbSeat);

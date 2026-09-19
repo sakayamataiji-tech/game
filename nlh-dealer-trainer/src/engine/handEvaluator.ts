@@ -1,4 +1,4 @@
-import { Card, Rank, RANK_WORD } from "./cards";
+import { Card, Rank, RANK_LABEL, RANK_WORD } from "./cards";
 
 /**
  * Hand categories in ascending strength. Royal flush is the top straight flush
@@ -54,6 +54,31 @@ export interface HandValue {
   isRoyalFlush: boolean;
   /** Human readable name, e.g. "Full House, Kings full of Sevens". */
   description: string;
+  /** Category title in caps, e.g. "TWO PAIR" ("ROYAL FLUSH" for the royal). */
+  title: string;
+  /** What makes the hand, e.g. "Kings & Eights", "Ace high", "Kings full of Sevens". */
+  detail: string;
+  /** Kicker note when a kicker can decide, e.g. "Ace Kicker"; empty otherwise. */
+  kicker: string;
+  /** Best five ranks high to low, e.g. "A-K-Q-J-T" (wheel: "5-4-3-2-A"). */
+  ranksLabel: string;
+}
+
+function ranksLabelOf(cards: readonly Card[], wheel = false): string {
+  const labels = cards.map((c) => (c.rank === 10 ? "T" : String(RANK_LABEL[c.rank])));
+  if (wheel) {
+    // 5-4-3-2-A: the ace plays low
+    const noAce = cards.filter((c) => c.rank !== 14).sort((a, b) => b.rank - a.rank).map((c) => String(RANK_LABEL[c.rank]));
+    return [...noAce, "A"].join("-");
+  }
+  return labels.join("-");
+}
+
+function finish(v: Omit<HandValue, "title" | "ranksLabel"> & { title?: string; wheel?: boolean }): HandValue {
+  const { wheel, ...rest } = v;
+  const title = v.title ?? (v.isRoyalFlush ? "ROYAL FLUSH" : HAND_CATEGORY_NAME[v.category].toUpperCase());
+  const ordered = v.bestFive.slice().sort((a, b) => b.rank - a.rank);
+  return { ...rest, title, ranksLabel: ranksLabelOf(ordered, wheel) };
 }
 
 function plural(rank: Rank): string {
@@ -123,7 +148,7 @@ export function evaluateHand(input: readonly Card[]): HandValue {
     if (sfHigh > 0) {
       const five = straightCards(flushCards, sfHigh);
       const royal = sfHigh === 14;
-      return {
+      return finish({
         category: HandCategory.StraightFlush,
         tiebreak: [sfHigh, 0, 0, 0, 0],
         bestFive: five,
@@ -131,7 +156,10 @@ export function evaluateHand(input: readonly Card[]): HandValue {
         description: royal
           ? "Royal Flush"
           : `Straight Flush, ${RANK_WORD[sfHigh as Rank]} high`,
-      };
+        detail: royal ? "A-K-Q-J-T suited" : `${RANK_WORD[sfHigh as Rank]} high`,
+        kicker: "",
+        wheel: sfHigh === 5,
+      });
     }
   }
 
@@ -154,13 +182,15 @@ export function evaluateHand(input: readonly Card[]): HandValue {
   if (quads.length > 0) {
     const q = quads[0];
     const kicker = cards.find((c) => c.rank !== q.rank)!;
-    return {
+    return finish({
       category: HandCategory.FourOfAKind,
       tiebreak: [q.rank, kicker.rank, 0, 0, 0],
       bestFive: [...q.cards, kicker],
       isRoyalFlush: false,
-      description: `Four of a Kind, ${plural(q.rank as Rank)}`,
-    };
+      description: `Four of a Kind, ${plural(q.rank as Rank)}, ${RANK_WORD[kicker.rank]} kicker`,
+      detail: plural(q.rank as Rank),
+      kicker: `${RANK_WORD[kicker.rank]} Kicker`,
+    });
   }
 
   if (trips.length > 0 && (pairs.length > 0 || trips.length > 1)) {
@@ -171,79 +201,94 @@ export function evaluateHand(input: readonly Card[]): HandValue {
     if (pairs.length > 0) candidates.push({ rank: pairs[0].rank, cards: pairs[0].cards });
     candidates.sort((a, b) => b.rank - a.rank);
     const p = candidates[0];
-    return {
+    return finish({
       category: HandCategory.FullHouse,
       tiebreak: [t.rank, p.rank, 0, 0, 0],
       bestFive: [...t.cards, ...p.cards],
       isRoyalFlush: false,
       description: `Full House, ${plural(t.rank as Rank)} full of ${plural(p.rank as Rank)}`,
-    };
+      detail: `${plural(t.rank as Rank)} full of ${plural(p.rank as Rank)}`,
+      kicker: "",
+    });
   }
 
   if (flushCards) {
     const five = flushCards.slice(0, 5);
-    return {
+    return finish({
       category: HandCategory.Flush,
       tiebreak: five.map((c) => c.rank),
       bestFive: five,
       isRoyalFlush: false,
       description: `Flush, ${RANK_WORD[five[0].rank]} high`,
-    };
+      detail: `${RANK_WORD[five[0].rank]} high`,
+      kicker: "",
+    });
   }
 
   const stHigh = straightHigh(new Set(cards.map((c) => c.rank)));
   if (stHigh > 0) {
-    return {
+    return finish({
       category: HandCategory.Straight,
       tiebreak: [stHigh, 0, 0, 0, 0],
       bestFive: straightCards(cards, stHigh),
       isRoyalFlush: false,
       description: `Straight, ${RANK_WORD[stHigh as Rank]} high`,
-    };
+      detail: `${RANK_WORD[stHigh as Rank]} high`,
+      kicker: "",
+      wheel: stHigh === 5,
+    });
   }
 
   if (trips.length > 0) {
     const t = trips[0];
     const kickers = cards.filter((c) => c.rank !== t.rank).slice(0, 2);
-    return {
+    return finish({
       category: HandCategory.ThreeOfAKind,
       tiebreak: [t.rank, kickers[0].rank, kickers[1].rank, 0, 0],
       bestFive: [...t.cards, ...kickers],
       isRoyalFlush: false,
-      description: `Three of a Kind, ${plural(t.rank as Rank)}`,
-    };
+      description: `Three of a Kind, ${plural(t.rank as Rank)}, ${RANK_WORD[kickers[0].rank]} kicker`,
+      detail: plural(t.rank as Rank),
+      kicker: `${RANK_WORD[kickers[0].rank]}-${RANK_WORD[kickers[1].rank]} Kicker`,
+    });
   }
 
   if (pairs.length >= 2) {
     const [hp, lp] = pairs; // already sorted by rank desc
     const kicker = cards.find((c) => c.rank !== hp.rank && c.rank !== lp.rank)!;
-    return {
+    return finish({
       category: HandCategory.TwoPair,
       tiebreak: [hp.rank, lp.rank, kicker.rank, 0, 0],
       bestFive: [...hp.cards, ...lp.cards, kicker],
       isRoyalFlush: false,
-      description: `Two Pair, ${plural(hp.rank as Rank)} and ${plural(lp.rank as Rank)}`,
-    };
+      description: `Two Pair, ${plural(hp.rank as Rank)} & ${plural(lp.rank as Rank)}, ${RANK_WORD[kicker.rank]} kicker`,
+      detail: `${plural(hp.rank as Rank)} & ${plural(lp.rank as Rank)}`,
+      kicker: `${RANK_WORD[kicker.rank]} Kicker`,
+    });
   }
 
   if (pairs.length === 1) {
     const p = pairs[0];
     const kickers = cards.filter((c) => c.rank !== p.rank).slice(0, 3);
-    return {
+    return finish({
       category: HandCategory.OnePair,
       tiebreak: [p.rank, kickers[0].rank, kickers[1].rank, kickers[2].rank, 0],
       bestFive: [...p.cards, ...kickers],
       isRoyalFlush: false,
-      description: `One Pair, ${plural(p.rank as Rank)}`,
-    };
+      description: `One Pair, ${plural(p.rank as Rank)}, ${RANK_WORD[kickers[0].rank]} kicker`,
+      detail: plural(p.rank as Rank),
+      kicker: `${kickers.map((k) => RANK_WORD[k.rank]).join("-")} Kicker`,
+    });
   }
 
   const five = cards.slice(0, 5);
-  return {
+  return finish({
     category: HandCategory.HighCard,
     tiebreak: five.map((c) => c.rank),
     bestFive: five,
     isRoyalFlush: false,
     description: `High Card, ${RANK_WORD[five[0].rank]} high`,
-  };
+    detail: `${RANK_WORD[five[0].rank]} high`,
+    kicker: `${five.slice(1).map((k) => RANK_WORD[k.rank]).join("-")} Kicker`,
+  });
 }

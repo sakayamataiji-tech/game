@@ -267,3 +267,26 @@ describe("potCalculator", () => {
     expect(() => replayHand(h)).toThrow(BettingError);
   });
 });
+
+describe("antes", () => {
+  it("antes are posted by everyone before the blinds and count toward the pot but not the street bet", () => {
+    const s = startHand({ players: players([1000, 1000, 1000]), buttonSeat: 1, smallBlind: 5, bigBlind: 10, ante: 1 });
+    expect(totalPot(s)).toBe(3 + 5 + 10);
+    expect(s.currentBet).toBe(10);
+    expect(s.players.map((p) => p.streetContribution)).toEqual([0, 5, 10]);
+    expect(legalActions(s).call).toBe(10);
+  });
+  it("a player who cannot cover the ante is all-in for it", () => {
+    const s = startHand({ players: players([1000, 1000, 1]), buttonSeat: 1, smallBlind: 5, bigBlind: 10, ante: 2 });
+    expect(s.players[2].allIn).toBe(true);
+    expect(s.players[2].totalContribution).toBe(1);
+    expect(s.toAct).toEqual([1, 2]); // seat 3 (BB, all-in) never acts
+  });
+  it("calculatePot includes antes", () => {
+    const r = calculatePot({
+      players: players([1000, 1000]), buttonSeat: 1, smallBlind: 5, bigBlind: 10, ante: 3,
+      streets: [{ street: "preflop", actions: [{ seat: 1, type: "call" }, { seat: 2, type: "check" }] }],
+    });
+    expect(r.pot).toBe(26);
+  });
+});

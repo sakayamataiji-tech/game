@@ -1,6 +1,6 @@
 import { Card, RANK_LABEL, SUIT_SYMBOL } from "@/engine/cards";
 
-export type CardSize = "sm" | "md" | "lg";
+export type CardSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 interface Props {
   card: Card;
@@ -9,14 +9,16 @@ interface Props {
   dim?: boolean;
 }
 
+/** A playing card: big rank, big suit, red hearts/diamonds, black spades/clubs. */
 export function PlayingCard({ card, size = "md", highlight = false, dim = false }: Props) {
   const red = card.suit === "h" || card.suit === "d";
   const cls = ["card", `card-${size}`, red ? "card-red" : "card-black", highlight ? "card-highlight" : "", dim ? "card-dim" : ""]
     .filter(Boolean).join(" ");
-  const label = `${RANK_LABEL[card.rank]}${SUIT_SYMBOL[card.suit]}`;
+  const rank = RANK_LABEL[card.rank] === "T" ? "10" : RANK_LABEL[card.rank];
+  const label = `${rank}${SUIT_SYMBOL[card.suit]}`;
   return (
     <span className={cls} aria-label={label} role="img">
-      <span className="card-rank">{RANK_LABEL[card.rank] === "T" ? "10" : RANK_LABEL[card.rank]}</span>
+      <span className="card-corner"><span className="card-rank">{rank}</span><span className="card-corner-suit">{SUIT_SYMBOL[card.suit]}</span></span>
       <span className="card-suit">{SUIT_SYMBOL[card.suit]}</span>
     </span>
   );

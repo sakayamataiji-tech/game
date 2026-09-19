@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import type { PadKey } from "@/components/NumberPad";
 
 /**
@@ -8,7 +8,7 @@ import type { PadKey } from "@/components/NumberPad";
  * never treat 1-9 as answer shortcuts.
  */
 export function useDigitInput(onKey: (k: PadKey) => void, enabled: boolean) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!enabled) return;
     const handler = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;

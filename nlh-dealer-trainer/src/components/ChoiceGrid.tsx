@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 export interface Choice {
   key: string;
@@ -23,7 +23,9 @@ interface Props {
  * modes never register 1-9 as shortcuts.
  */
 export function ChoiceGrid({ choices, selected, correct, disabled, onSelect, columns = 3 }: Props) {
-  useEffect(() => {
+  // Layout effect: the hotkeys are live before the first paint, so a key pressed
+  // the instant a question appears is never lost.
+  useLayoutEffect(() => {
     if (disabled) return;
     const handler = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;

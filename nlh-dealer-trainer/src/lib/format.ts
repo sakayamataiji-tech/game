@@ -2,31 +2,38 @@ import { LogEntry, HandState, Street, STREET_LABEL } from "@/engine/betting";
 import { Card, RANK_LABEL, SUIT_SYMBOL } from "@/engine/cards";
 import { HandCategory, HAND_CATEGORY_NAME } from "@/engine/handEvaluator";
 import type { Mode } from "@/engine/scenarioGenerator";
+import type { TrainMode } from "./session";
 
-export const MODE_INFO: Record<Mode, { title: string; subtitle: string; description: string; shortcut: string }> = {
+export const MODE_INFO: Record<TrainMode, { title: string; subtitle: string; description: string; shortcut: string }> = {
   "hand-reading": {
     title: "HAND READING",
-    subtitle: "役の読み取り",
-    description: "ボード5枚とホールカード2枚から、最強の5枚で作れる役を答えます。",
-    shortcut: "1〜9キーで選択",
+    subtitle: "役判定",
+    description: "ボード5枚とホールカード2枚から、最強の5枚で作れる役を答える。",
+    shortcut: "1〜9 キーで回答",
   },
   winner: {
     title: "WINNER",
     subtitle: "勝者判定",
-    description: "ショウダウンした全プレイヤーのハンドを比較し、勝者（または全員スプリット）を答えます。",
-    shortcut: "1〜4キーで席、Sでスプリット",
+    description: "ショウダウンした全員のハンドを比較し、勝者（全員同じ強さなら SPLIT）を答える。",
+    shortcut: "1〜6 キーで席、S で SPLIT",
   },
   pot: {
     title: "POT",
     subtitle: "ポット計算",
-    description: "ブラインドから始まるアクション履歴を追い、現在のポット総額を答えます。レイズは「レイズ to（そのストリートの合計額）」表記です。",
-    shortcut: "数字キーで入力、Enterで回答",
+    description: "ブラインドからのアクションを追い、ポットを暗算する。レイズは「raise to（合計額）」表記。",
+    shortcut: "数字キーで入力、Enter で決定",
   },
   "side-pot": {
     title: "SIDE POT",
     subtitle: "サイドポット計算",
-    description: "オールインを含むアクション履歴から、メインポットと各サイドポットの金額および参加資格者を答えます。",
-    shortcut: "数字キーで入力、Enterで回答",
+    description: "オールインを含むアクションから、メインポットと各サイドポットを順に答える。",
+    shortcut: "数字キーで入力、Enter で決定",
+  },
+  quick: {
+    title: "QUICK TRAINING",
+    subtitle: "ランダム出題",
+    description: "4カテゴリからランダムに出題。苦手なカテゴリが多めに出る。",
+    shortcut: "",
   },
 };
 
@@ -43,7 +50,7 @@ export const CATEGORY_JA: Record<HandCategory, string> = {
 };
 
 export function categoryLabel(c: HandCategory): string {
-  return `${HAND_CATEGORY_NAME[c]} / ${CATEGORY_JA[c]}`;
+  return HAND_CATEGORY_NAME[c];
 }
 
 export function formatChips(n: number): string {
@@ -51,35 +58,40 @@ export function formatChips(n: number): string {
 }
 
 export function cardLabel(c: Card): string {
-  return `${RANK_LABEL[c.rank]}${SUIT_SYMBOL[c.suit]}`;
+  return `${RANK_LABEL[c.rank] === "T" ? "10" : RANK_LABEL[c.rank]}${SUIT_SYMBOL[c.suit]}`;
+}
+
+export function cardsLabel(cards: readonly Card[]): string {
+  return cards.map(cardLabel).join(" ");
 }
 
 export function streetLabel(s: Street): string {
   return STREET_LABEL[s];
 }
 
-const ACTION_JA: Record<LogEntry["type"], string> = {
+const ACTION_LABEL: Record<LogEntry["type"], string> = {
+  post_ante: "ANTE",
   post_sb: "SB",
   post_bb: "BB",
-  fold: "フォールド",
-  check: "チェック",
-  call: "コール",
-  bet: "ベット",
-  raise: "レイズ to",
-  all_in: "オールイン",
+  fold: "FOLD",
+  check: "CHECK",
+  call: "CALL",
+  bet: "BET",
+  raise: "RAISE TO",
+  all_in: "ALL-IN",
 };
 
-/** One log line, e.g. "Seat 3 (BTN)  レイズ to 275". */
-export function describeLogEntry(e: LogEntry, state: HandState, positions: Record<number, string>): { who: string; what: string; amount: string } {
+/** One log line, e.g. { who: "UTG", what: "RAISE TO", amount: "4,000" }. */
+export function describeLogEntry(e: LogEntry, state: HandState, positions: Record<number, string>): { who: string; sub: string; what: string; amount: string } {
   const p = state.players.find((x) => x.seat === e.seat)!;
-  const who = `${p.name} (${positions[e.seat] ?? ""})`;
-  const verb = ACTION_JA[e.type];
+  const who = positions[e.seat] ?? p.name;
+  const sub = p.name;
+  const what = ACTION_LABEL[e.type];
   let amount = "";
   switch (e.type) {
+    case "post_ante":
     case "post_sb":
     case "post_bb":
-      amount = formatChips(e.chips);
-      break;
     case "call":
       amount = formatChips(e.chips);
       break;
@@ -88,12 +100,20 @@ export function describeLogEntry(e: LogEntry, state: HandState, positions: Recor
       amount = formatChips(e.toAmount);
       break;
     case "all_in":
-      amount = `${formatChips(e.chips)}（合計 ${formatChips(e.toAmount)}）`;
+      amount = formatChips(e.toAmount);
       break;
     default:
       amount = "";
   }
-  return { who, what: verb, amount };
+  return { who, sub, what, amount };
+}
+
+export function formatSeconds(ms: number): string {
+  return `${(ms / 1000).toFixed(2)} sec`;
+}
+
+export function formatSecondsShort(ms: number | null): string {
+  return ms === null ? "–" : `${(ms / 1000).toFixed(1)} sec`;
 }
 
 export function formatDuration(ms: number): string {

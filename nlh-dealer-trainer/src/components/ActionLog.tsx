@@ -29,15 +29,15 @@ export function ActionLog({ state, positions, board, showPot }: Props) {
         return (
           <Fragment key={street}>
             <div className="log-street">
-              <span className="log-street-name">{streetLabel(street)}</span>
-              {cards.length > 0 && <CardRow cards={cards} size="sm" />}
-              {entries.length === 0 && <span className="log-noaction">アクションなし</span>}
+              <span className="log-street-name">{streetLabel(street).toUpperCase()}</span>
+              {cards.length > 0 && <CardRow cards={cards} size="xs" />}
+              {entries.length === 0 && <span className="log-noaction">no action</span>}
             </div>
             {entries.map((e, i) => {
               const d = describeLogEntry(e, state, positions);
               return (
                 <div key={`${street}-${i}`} className={`log-row log-${e.type}`}>
-                  <span className="log-who">{d.who}</span>
+                  <span className="log-who">{d.who}<small>{d.sub}</small></span>
                   <span className="log-what">{d.what}</span>
                   <span className="log-amount">{d.amount}</span>
                   {showPot && <span className="log-pot">pot {formatChips(e.potAfter)}</span>}
