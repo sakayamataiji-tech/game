@@ -34,6 +34,13 @@ AUTO は 3問連続正解でレベルアップ、2問連続不正解でレベル
 - WEAKNESS TRAINING: 出題ごとにスキルタグ（例: Straight Detection, Flush Comparison, Full House Comparison, Side Pot）を記録し、正答率の低いスキルを優先出題。
 - REAL TABLE MODE は [docs/real-table-mode.md](docs/real-table-mode.md) に設計のみ。
 
+## スマホゲームとして
+
+- **PWA**: `public/manifest.webmanifest` と `public/sw.js`（オフライン対応のアプリシェル）。Safari の「ホーム画面に追加」／Chrome の「インストール」で全画面アプリとして起動します。アイコンは `public/icons/`。
+- **縦持ち・片手操作**: 下部タブバー（HOME / PLAY / STATS / RATING）、親指ゾーンの回答パッド、大きめのタップ領域。トレーニング中はタブバーを隠して画面を広く使います。iPad 横画面では従来の2カラム表示。
+- **ゲーム要素**: XP（スコア累計）とディーラーランク（ROOKIE → MASTER DEALER の6段階）、連続プレイ日数、デイリーミッション（今日10問プレイ／7問正解）、連続正解コンボ表示、正誤のバイブレーション（RATING 画面で ON/OFF）。
+- ストア配信用のネイティブ化（Capacitor 等）は未対応。静的サイトなのでそのままラップできます。
+
 ## ルール（固定）
 
 - レイズは「レイズ to（そのストリートの合計投入額）」で統一。

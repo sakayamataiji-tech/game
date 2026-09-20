@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+"use client";
+import { ReactNode, useEffect, useState } from "react";
 import { Card } from "@/engine/cards";
 import { CardRow } from "./CardRow";
 import { CardSize } from "./PlayingCard";
@@ -41,8 +42,22 @@ interface Props {
  * The table as seen from the dealer's seat: players on the far arc, the board
  * in the middle, the dealer (you) at the bottom edge.
  */
+/** True on phone-width screens (matches the CSS breakpoint). SSR renders the desktop layout. */
+function useNarrow(): boolean {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 600px)");
+    const update = () => setNarrow(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return narrow;
+}
+
 export function TableView({ seats, board, boardSlots = 5, center, cardSize, boardSize, layout = "arc" }: Props) {
   const n = seats.length;
+  const narrow = useNarrow();
   const single = layout === "single";
   const holeSize: CardSize = cardSize ?? (single ? "lg" : n >= 5 ? "xs" : n >= 3 ? "sm" : "md");
   const bSize: CardSize = boardSize ?? (single ? "lg" : "md");
@@ -59,7 +74,11 @@ export function TableView({ seats, board, boardSlots = 5, center, cardSize, boar
           // 5+ seats: two staggered rows so neighbouring seats never overlap.
           let x: number, y: number;
           if (single) { x = 50; y = 30; }
-          else if (n <= 4) {
+          else if (narrow && n >= 3) {
+            // Phone: two staggered rows, a bit lower so the top row stays inside the felt.
+            x = 8 + (84 * i) / (n - 1);
+            y = i % 2 === 1 ? 20 : 54;
+          } else if (n <= 4) {
             const theta = Math.PI * (0.9 + (1.2 * (i + 0.5)) / n);
             x = 50 + 42 * Math.cos(theta);
             y = 52 + 34 * Math.sin(theta);

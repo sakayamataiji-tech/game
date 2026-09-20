@@ -8,6 +8,8 @@ import { Level, LEVELS, scoreAnswer, ScoreBreakdown, speedFeedback, SpeedFeedbac
 import { formatPercent, formatSeconds, formatSecondsShort, MODE_INFO } from "@/lib/format";
 import { quickModeWeights, weakSkills } from "@/lib/stats";
 import { useStats } from "@/lib/useStats";
+import { comboLabel } from "@/lib/game";
+import { vibrate } from "@/lib/settings";
 import {
   isSessionOver, LevelSetting, nextAutoLevel, SESSION_LENGTHS, SessionAttempt, SessionConfig, SessionLength, summarizeSession, TrainMode,
 } from "@/lib/session";
@@ -130,6 +132,7 @@ export function Trainer({ train }: { train: TrainMode }) {
     setAttempts((a) => [...a, attempt]);
     record({ mode: scenario.mode, level: scenario.level, skills: scenario.skills, correct: o.correct, timeMs, seed: scenario.seed, score: score.total });
     setAnswered({ ...o, timeMs, speed: speedFeedback(scenario.mode, timeMs), score, streak });
+    vibrate(o.correct ? (streak >= 3 ? [20, 40, 20] : 20) : [60, 40, 60]);
   }, [answered, attempts, record, scenario, startedAt]);
 
   const next = useCallback(() => {
@@ -198,7 +201,10 @@ export function Trainer({ train }: { train: TrainMode }) {
           <div className="feedback-main">
             <div className="feedback-mark">{answered.correct ? <Check size={40} strokeWidth={3} /> : <X size={40} strokeWidth={3} />}</div>
             <div className="feedback-text">
-              <div className="feedback-verdict">{answered.correct ? "CORRECT" : "INCORRECT"}</div>
+              <div className="feedback-verdict">
+                {answered.correct ? "CORRECT" : "INCORRECT"}
+                {answered.correct && comboLabel(answered.streak) && <span className="combo">{comboLabel(answered.streak)} ×{answered.streak}</span>}
+              </div>
               {!answered.correct && <div className="feedback-line"><small>Your Answer</small><span>{answered.yourAnswer}</span></div>}
               <div className="feedback-line"><small>{answered.correct ? "Answer" : "Correct"}</small><strong>{answered.correctAnswer}</strong></div>
               {answered.detail && <div className="feedback-detail">{answered.detail}</div>}

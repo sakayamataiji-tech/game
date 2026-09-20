@@ -154,8 +154,10 @@ svg { vertical-align: middle; }
 .dealer-button { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #fff; color: #000; font-size: 0.65rem; font-weight: 900; }
 @media (max-width: 600px) {
   .table-felt { aspect-ratio: 1.15 / 1; min-height: 280px; }
+  .table-center { top: 80%; }
   .table-single .table-center { top: 70%; }
   .table-single .card-lg { --card-w: clamp(40px, 11vw, 52px); }
+  .seat-caption { font-size: 0.62rem; }
   .seat { min-width: 70px; padding: 4px 5px; }
   .seat-name { font-size: 0.7rem; }
 }
@@ -338,4 +340,55 @@ svg { vertical-align: middle; }
   .today-grid { grid-template-columns: repeat(3, 1fr); }
   .today-tile strong { font-size: 1.3rem; }
   .exp-grid { grid-template-columns: 1fr; }
+}
+
+/* ---- Mobile game layer ---- */
+button, .btn, .choice, .seg, .numpad-key, .tab { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+html { overscroll-behavior: none; }
+body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+.trainer { padding-bottom: 260px; }
+
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; justify-content: space-around; align-items: stretch;
+  height: calc(60px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(10, 21, 17, 0.94); backdrop-filter: blur(10px); border-top: 1px solid var(--line);
+}
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--muted); text-decoration: none; font-size: 0.65rem; letter-spacing: 0.12em; font-weight: 800; }
+.tab-active { color: var(--accent); }
+@media (min-width: 900px) { .tabbar { display: none; } body { padding-bottom: 0; } }
+
+.lobby { padding-top: 18px; }
+.rank-card { margin-top: 14px; padding: 16px; border-radius: var(--radius); background: radial-gradient(ellipse at 20% 0%, var(--felt-2), var(--panel) 75%); border: 1px solid var(--line); }
+.rank-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.rank-head small { color: var(--muted); letter-spacing: 0.14em; font-weight: 700; font-size: 0.7rem; }
+.rank-head strong { display: block; font-size: 1.5rem; font-weight: 900; letter-spacing: 0.06em; color: var(--accent); line-height: 1.1; }
+.day-streak { display: flex; flex-direction: column; align-items: center; color: #ff9f43; min-width: 56px; }
+.day-streak strong { font-size: 1.4rem; line-height: 1; color: var(--text); }
+.day-streak small { font-size: 0.6rem; letter-spacing: 0.14em; color: var(--muted); }
+.xp-bar { height: 12px; border-radius: 6px; background: rgba(0, 0, 0, 0.4); overflow: hidden; margin-top: 12px; }
+.xp-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 6px; transition: width 0.6s ease; }
+.xp-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.btn-play { width: 100%; margin-top: 14px; min-height: 72px; font-size: 1.5rem; letter-spacing: 0.2em; flex-direction: column; gap: 0; }
+.btn-play small { font-size: 0.7rem; letter-spacing: 0.08em; font-weight: 600; opacity: 0.8; }
+.mission-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.mission-list li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
+.mission-title { flex: 1; color: var(--text); font-weight: 600; }
+.mission-progress { font-variant-numeric: tabular-nums; font-weight: 700; }
+.mission-done { border-color: var(--ok); }
+.mission-done svg, .mission-done .mission-progress { color: var(--ok); }
+.combo { margin-left: 12px; font-size: 0.8rem; padding: 2px 8px; border-radius: 6px; background: var(--accent); color: #1a1a1a; letter-spacing: 0.1em; animation: pop 0.35s ease; vertical-align: middle; }
+@keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+.rank-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.rank-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
+.rank-list li small { display: block; font-size: 0.7rem; }
+.rank-current { border-color: var(--accent) !important; color: var(--accent-2) !important; }
+.rank-done { color: var(--text) !important; }
+
+@media (max-width: 600px) {
+  .choice { min-height: 72px; }
+  .numpad-key { min-height: 60px; }
+  .mode-cards { grid-template-columns: repeat(2, 1fr); }
+  .mode-card { min-height: 120px; padding: 14px; }
+  .mode-card-title { font-size: 1.05rem; }
+  .home-hero h1 { font-size: 1.5rem; }
 }
