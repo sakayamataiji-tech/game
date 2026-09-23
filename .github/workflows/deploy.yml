@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/nlh-dealer-trainer-h5rzpe]
   workflow_dispatch:
 
 permissions:
@@ -41,6 +41,9 @@ jobs:
         run: |
           mkdir -p dist/nlh-dealer-trainer
           cp -r nlh-dealer-trainer/out/. dist/nlh-dealer-trainer/
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
